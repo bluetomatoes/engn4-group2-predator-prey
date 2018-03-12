@@ -114,7 +114,7 @@ else
         perp_vector = [-vr(2); vr(1)]/norm(vr);
         F = Fymax*perp_vector;
     end
-end
+% end
  
  end
  
