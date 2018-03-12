@@ -108,13 +108,11 @@ else
     %Apply force perpendicular to predator velocity
     if t==0
        F = Fymax*[0;1]; 
-    elseif py(2) < 20
-        F = Fymax*[0;1];
     else
         perp_vector = [-vr(2); vr(1)]/norm(vr);
         F = Fymax*perp_vector;
     end
-% end
+end
  
  end
  
@@ -129,6 +127,7 @@ function F = compute_random_force(t,force_table)
 F = [interp1([0:5:250],force_table(:,1),t);...
  interp1([0:5:250],force_table(:,2),t)];
 end
+ %change
 %Animation function
 function animate_projectiles(t,sols)
 figure
