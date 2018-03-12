@@ -108,9 +108,10 @@ else
     %Apply force perpendicular to predator velocity
     if t==0
        F = Fymax*[0;1]; 
-    elseif
-     
-        perp_vector = [-vr(2); vr(1)]/norm(vr)
+    elseif py(2) < 20
+        F = Fymax*[0;1];
+    else
+        perp_vector = [-vr(2); vr(1)]/norm(vr);
         F = Fymax*perp_vector;
     end
 end
