@@ -1,0 +1,36 @@
+%Predator code
+if (amiapredator)
+distance = sqrt((pr(1)-py(1))^2 + (pr(2)-py(2))^2);
+velocity_relative = vr - vy;
+distance_apart = pr - py;
+time_to_catch = norm(distance_apart)/norm(velocity_relative);
+predicted_py = py + vy*(time_to_catch/3);
+dist_between = predicted_py - pr;
+angle = dist_between/norm(dist_between); 
+
+    if t == 0
+        F = Frmax*[1;0];
+    elseif pr(2) < 30
+        if distance < 40
+            F = Frmax*[angle(1);angle(2)];
+        elseif norm(vr(2)) > 10
+            F = Frmax*-vr; 
+        elseif pr(2) < 6
+            F = Frmax*[0;1];
+        else
+            F = Frmax * [0;1];
+        end
+    elseif distance > 60
+        F = Frmax*[angle(1);angle(2)];
+    elseif distance < 60
+        if distance < 30
+            F = Frmax*((py-pr)/norm(py-pr));
+        elseif norm(vr) > 25
+            F = Frmax*-vr;
+        else
+            F = Frmax*[angle(1);angle(2)];
+        end
+    elseif pr(2) < 100 && distance < 100
+        F = Frmax*[angle(1);angle(2)];
+        %For loop to break for 2 seconds then accelerate toward prey
+    end
