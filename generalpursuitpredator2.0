@@ -11,23 +11,25 @@ angle = dist_between/norm(dist_between);
     if t == 0
         F = Frmax*[1;0];
     elseif pr(2) < 100
-        if distance < 20
-            F = Frmax*[angle(1);angle(2)];
+        if distance < 20 && norm(vr) > norm(vy+15)
+            F = Frmax*-vr;
+        elseif distance < 20
+            F = Frmax*((py-pr)/norm(py-pr));
         elseif norm(vr(2)) > 10
             F = Frmax*-vr; 
         elseif pr(2) < 10 && norm(vr(2)) > 1
             F = Frmax*-vr(2);
-        elseif pr(2) < 10
-            F = Frmax*[0;1];
         else
-            F = 100*(py(2)-pr(2))*[0;1] + Frmax*((py-pr)/norm(py-pr));
+            %If predator is in just out of line with low prey, change the 
+            %number that is being added to py(2) accordingly.
+            F = 100*((py(2)+10)-pr(2))*[0;1] + Frmax*[angle(1);angle(2)];
         end
     elseif distance > 60
         F = Frmax*[angle(1);angle(2)];
     elseif distance < 60
-        if distance < 30
+        if distance < 40
             F = Frmax*((py-pr)/norm(py-pr));
-        elseif norm(vr) > 25
+        elseif norm(vr) > norm(vy+15)
             F = Frmax*-vr;
         else
             F = Frmax*[angle(1);angle(2)];
