@@ -10,15 +10,17 @@ angle = dist_between/norm(dist_between);
 
     if t == 0
         F = Frmax*[1;0];
-    elseif pr(2) < 30
-        if distance < 40
+    elseif pr(2) < 100
+        if distance < 20
             F = Frmax*[angle(1);angle(2)];
         elseif norm(vr(2)) > 10
             F = Frmax*-vr; 
-        elseif pr(2) < 6
+        elseif pr(2) < 10 && norm(vr(2)) > 1
+            F = Frmax*-vr(2);
+        elseif pr(2) < 10
             F = Frmax*[0;1];
         else
-            F = Frmax * [0;1];
+            F = 100*(py(2)-pr(2))*[0;1] + Frmax*((py-pr)/norm(py-pr));
         end
     elseif distance > 60
         F = Frmax*[angle(1);angle(2)];
@@ -30,7 +32,4 @@ angle = dist_between/norm(dist_between);
         else
             F = Frmax*[angle(1);angle(2)];
         end
-    elseif pr(2) < 100 && distance < 100
-        F = Frmax*[angle(1);angle(2)];
-        %For loop to break for 2 seconds then accelerate toward prey
     end
