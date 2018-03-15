@@ -1,3 +1,16 @@
+ %The actual code where we write the behavior
+ function F = compute_f_group2(t,Frmax,Fymax,amiapredator,pr,vr,py,vy)
+% Write your code to compute the forces below. This will be the function
+% that you must submit to the competition. 
+%Predator code
+if (amiapredator)
+    F = goodpredator2(t,Frmax,Fymax,amiapredator,pr,vr,py,vy);
+%Prey code
+else
+   F = perpendicular_prey(t,Frmax,Fymax,amiapredator,pr,vr,py,vy);
+end
+end
+
 function sine-wave-prey((,Frmax,Fymax,amiapredator,pr,vr,py,vy)
 distance= sqrt((py(1)-pr(1))^2+(py(2)-pr(2))^2);
     if t==0
@@ -9,8 +22,6 @@ distance= sqrt((py(1)-pr(1))^2+(py(2)-pr(2))^2);
     elseif distance<100
         F=Fymax*[-1*vr(2)/sqrt(vr(2)^2+vr(1)^2);-1*abs(vr(1)/sqrt(vr(2)^2+vr(1)^2))];
 end
-
-----------------------------------------------------------------------------------------------------------------
 
 function circle-prey(t,Frmax,Fymax,amiapredator,pr,vr,py,vy)
 istance= sqrt((py(1)-pr(1))^2+(py(2)-pr(2))^2);
@@ -29,13 +40,21 @@ istance= sqrt((py(1)-pr(1))^2+(py(2)-pr(2))^2);
     else 
     F=Fymax*[0;1];
 end
-----------------------------------------------------------------------------------------------------------
 
 function perpendicular_prey(t,Frmax,Fymax,amiapredator,pr,vr,py,vy)
-
+    %Apply force perpendicular to predator velocity
+    if t==0
+       F = Fymax*[0;-1]; 
+    else
+       perp_vector = [-vr(2); vr(1)]/norm(vr);
+       direction_vector = [perp_vector(1); perp_vector(2) + 80/py(2)];
+       F = Fymax*direction_vector/norm(direction_vector);
+       if py(2) < 0
+           py
+       else
+       end
+    end
 end
-
--------------------------------------------------------------------------------------------------------------
 
 function low_prey(t,Frmax,Fymax,amiapredator,pr,vr,py,vy)
  if(t>0)
@@ -55,40 +74,49 @@ function low_prey(t,Frmax,Fymax,amiapredator,pr,vr,py,vy)
     
     end
 end
------------------------------------------------------------------------------------------------------------------
-function gen_pred(t,Frmax,Fymax,amiapredator,pr,vr,py,vy)
-distance = sqrt((pr(1)-py(1))^2 + (pr(2)-py(2))^2);
-velocity_relative = vr - vy;
-distance_apart = pr - py;
-time_to_catch = norm(distance_apart)/norm(velocity_relative);
-predicted_py = py + vy*(time_to_catch/3);
-dist_between = predicted_py - pr;
-angle = dist_between/norm(dist_between); 
 
+function gen_pred(t,Frmax,Fymax,amiapredator,pr,vr,py,vy)
+    %uses the relative velocities of the predator and prey to predict where
+    %the predator should accelerate toward
+    distance = sqrt((pr(1)-py(1))^2 + (pr(2)-py(2))^2);
+    velocity_relative = vr - vy;
+    distance_apart = pr - py;
+    time_to_catch = norm(distance_apart)/norm(velocity_relative);
+    predicted_py = py + vy*(time_to_catch/3);
+    dist_between = predicted_py - pr;
+    heading = dist_between/norm(dist_between); 
     if t == 0
+        %make sure system doesn't break when t=0 => v=0
         F = Frmax*[1;0];
     elseif pr(2) < 100
         if distance < 20 && norm(vr) > norm(vy+15)
             F = Frmax*-vr;
         elseif distance < 20
+            %if close, just accelerate toward the prey's position
             F = Frmax*((py-pr)/norm(py-pr));
         elseif norm(vr(2)) > 10
+            %if close to the bottom, apply breaking force
             F = Frmax*-vr; 
         elseif pr(2) < 10 && norm(vr(2)) > 1
+            %make sure predator never goes below 0
             F = Frmax*-vr(2);
         else
             %If predator is in just out of line with low prey, change the 
             %number that is being added to py(2) accordingly.
-            F = 100*((py(2)+10)-pr(2))*[0;1] + Frmax*[angle(1);angle(2)];
+            F = 100*((py(2)+10)-pr(2))*[0;1] + Frmax*[heading(1);heading(2)];
         end
     elseif distance > 60
-        F = Frmax*[angle(1);angle(2)];
+        %apply general algorithim for large distance
+        F = Frmax*[heading(1);heading(2)];
     elseif distance < 60
         if distance < 40
             F = Frmax*((py-pr)/norm(py-pr));
         elseif norm(vr) > norm(vy+15)
+            %if the predator is moving way faster than the prey, brake a
+            %bit
             F = Frmax*-vr;
         else
-            F = Frmax*[angle(1);angle(2)];
+            F = Frmax*[heading(1);heading(2)];
         end
+    end
 end        
