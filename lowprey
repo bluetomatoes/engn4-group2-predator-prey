@@ -1,17 +1,19 @@
 %Prey code to drop close to 0 then go right
 else 
     if(t>0)
-        if(py(2)<60) && norm(vy(2)) > 2
+        if(py(2)<30) && norm(vy(2)) > 2
             F = Fymax*-vy(2);
-        elseif py(2)<60
+        elseif py(2)<30
             F = 50*(8-py(2))*[0;1] + 5*[1;0];
-        elseif py(2)<15
+        elseif py(2)<10 && norm(vy(2)) > 2
             F = 50*(8-py(2))*[0;1] + 100*[1;0];
+        elseif py(2)<10
+            F = 10*(8-py(2))*[0;1] + 200*[1;0];
         else
-            F = 0;
+            F = Fymax*[0;-1];
         end
     else 
-    F=Fymax*[0;1];
+    F=Fymax*[0;-1];
     
     end
 end
