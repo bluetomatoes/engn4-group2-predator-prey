@@ -46,7 +46,7 @@ function dwdt = eom(t,w,mr,my,Frmax,Fymax,c,forcetable_r,forcetable_y)
  Fydrag = -vy*norm(vy)*c;
  Fygrav = -my*g*[0;1];
  Fytotal = Fy+Fyrand+Fydrag+Fygrav;
- %t    Uncomment this line to display time in the command window as it runs
+ t    %Uncomment this line to display time in the command window as it runs
  %Test force - Use this for testing only
  %Fytotal = Fy;
  dwdt = [vr;vy;Frtotal/mr;Fytotal/my]; 
@@ -76,28 +76,36 @@ direction = -1; %Could also be 0
 %Test code, does nothing meaningful currently
 %Predator code
 if (amiapredator)
-     distance = norm(pr - py)
-     if t == 0
+    distance = sqrt((pr(1)-py(1))^2 + (pr(2)-py(2))^2);
+    velocity_relative = vr - vy;
+    distance_apart = pr - py;
+    time_to_catch = norm(distance_apart)/norm(velocity_relative);
+    predicted_py = py + vy*(time_to_catch/3);
+    dist_between = predicted_py - pr;
+    angle = dist_between/norm(dist_between); 
+    if t == 0
         F = Frmax*[1;0];
-    elseif pr(2) < 20
-        F = Frmax * [0;1];
-    elseif distance > 20
-        velocity_relative = vr - vy;
-        distance_apart = pr - py;
-        time_to_catch = norm(distance_apart)/norm(velocity_relative);
-        predicted_py = py + vy*time_to_catch;
-        dist_between = predicted_py - pr;
-        angle = dist_between/norm(dist_between);
+    elseif pr(2) < 30
+        if distance < 40
+            F = Frmax*[angle(1);angle(2)];
+        elseif norm(vr(2)) > 10
+            F = Frmax*-vr; 
+        elseif pr(2) < 6
+            F = Frmax*[0;1];
+        else
+            F = Frmax * [0;1];
+        end
+    elseif distance > 60
         F = Frmax*[angle(1);angle(2)];
-    elseif distance < 20 && norm(vr) > 2
-        F = Frmax*-vr;
-    elseif distance < 20
-        velocity_relative = vr - vy;
-        distance_apart = pr - py;
-        time_to_catch = norm(distance_apart)/norm(velocity_relative);
-        predicted_py = py + vy*time_to_catch;
-        dist_between = predicted_py - pr;
-        angle = dist_between/norm(dist_between);
+    elseif distance < 60
+        if distance < 30
+            F = Frmax*((py-pr)/norm(py-pr));
+        elseif norm(vr) > 25
+            F = Frmax*-vr;
+        else
+            F = Frmax*[angle(1);angle(2)];
+        end
+    elseif pr(2) < 100 && distance < 100
         F = Frmax*[angle(1);angle(2)];
         %For loop to break for 2 seconds then accelerate toward prey
     end
@@ -107,14 +115,32 @@ if (amiapredator)
 else
     %Apply force perpendicular to predator velocity
     if t==0
-       F = Fymax*[0;1]; 
+       F = Fymax*[0;-1]; 
     else
-        perp_vector = [-vr(2); vr(1)]/norm(vr);
-        F = Fymax*perp_vector;
+        %max upward acceleration
+        c = 0.2; my = 10; g = 9.81;
+        Fydrag = -vy*norm(vy)*c;
+        Fygrav = -my*g*[0;1];
+        %assume random force acts in largest downward (opposing) magnitude
+        Fyrand = -0.2*my*g*[0;1];
+        Fytotal = Fymax+Fyrand+Fydrag+Fygrav;
+        max_upward_a = Fytotal/my;
+        %height prediction - prevent prey from hitting the ground
+        syms t_unknown y0
+        eq2 = y0 == -vy*t_unknown + 0.5*max_upward_a*t_unknown^2;
+        solution = solve([eq2], [y0, t_unknown]);
+        if py(2) < solution.y0 + 20
+            py
+            F = Fymax*[0;1];
+        else  
+            perp_vector = [-vr(2); vr(1)]/norm(vr);
+            direction_vector = [perp_vector(1), perp_vector(2)*50/py(2)]
+            F = Fymax*direction_vector/norm(direction_vector);
+        end
     end
 end
  
- end
+end
  
 %Random Force function
 function F = compute_random_force(t,force_table)
